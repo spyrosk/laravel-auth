@@ -6,7 +6,6 @@ use App\Http\Requests\DeleteUserAccount;
 use App\Http\Requests\UpdateUserPasswordRequest;
 use App\Http\Requests\UpdateUserProfile;
 use App\Models\Profile;
-use App\Models\Theme;
 use App\Models\User;
 use App\Notifications\SendGoodbyeEmail;
 use App\Traits\CaptureIpTrait;
@@ -63,11 +62,8 @@ class ProfilesController extends Controller
             abort(404);
         }
 
-        $currentTheme = Theme::find($user->profile->theme_id);
-
         $data = [
             'user'         => $user,
-            'currentTheme' => $currentTheme,
         ];
 
         return view('profiles.show')->with($data);
@@ -90,16 +86,8 @@ class ProfilesController extends Controller
                 ->with('error_title', trans('profile.notYourProfileTitle'));
         }
 
-        $themes = Theme::where('status', 1)
-                        ->orderBy('name', 'asc')
-                        ->get();
-
-        $currentTheme = Theme::find($user->profile->theme_id);
-
         $data = [
             'user'         => $user,
-            'themes'       => $themes,
-            'currentTheme' => $currentTheme,
 
         ];
 
@@ -120,7 +108,7 @@ class ProfilesController extends Controller
     {
         $user = $this->getUserByUsername($username);
 
-        $input = Input::only('theme_id', 'location', 'bio', 'twitter_username', 'github_username', 'avatar_status');
+        $input = Input::only('location', 'bio', 'twitter_username', 'github_username', 'avatar_status');
 
         $ipAddress = new CaptureIpTrait();
 
@@ -148,7 +136,6 @@ class ProfilesController extends Controller
      */
     public function updateUserAccount(Request $request, $id)
     {
-        $currentUser = \Auth::user();
         $user = User::findOrFail($id);
         $emailCheck = ($request->input('email') != '') && ($request->input('email') != $user->email);
         $ipAddress = new CaptureIpTrait();
